@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/ann760/employee-tracker-cms#readme",
   "dependencies": {
+    "console.table": "^0.10.0",
+    "express": "^4.17.1",
     "inquirer": "^7.3.3",
     "jest": "^26.5.2",
     "mysql2": "^2.2.5"

@@ -1,0 +1,40 @@
+DROP DATABASE IF EXISTS employee_cms;
+
+CREATE DATABASE employee_cms;
+
+USE employee_cms;
+
+DROP TABLE IF EXISTS departments;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS employees;
+
+
+CREATE TABLE departments
+(
+    id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    dept_name VARCHAR(30) UNIQUE NOT NULL
+);
+
+CREATE TABLE roles
+(
+    id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(30) UNIQUE NOT NULL,
+    salary DECIMAL UNSIGNED NOT NULL,
+    dept_id INT UNSIGNED NOT NULL,
+    INDEX dept_ind (dept_id),
+    CONSTRAINT fk_dept FOREIGN KEY (dept_id) REFERENCES departments (id) ON DELETE CASCADE
+);
+
+CREATE TABLE employees
+(
+    id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(30) NOT NULL,
+    last_name VARCHAR(30) NOT NULL,
+    role_id INTEGER UNSIGNED NOT NULL,
+    INDEX role_ind (role_id), 
+    CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE,
+    manager_id INTEGER UNSIGNED
+);
+
+--         ALTER TABLE employees
+--  ADD CONSTRAINT fk_role FOREIGN KEY (`role_id`) REFERENCES roles (`id`) ON DELETE SET NULL;
