@@ -24,8 +24,8 @@ const promptDbOptions = () => {
             "View Roles",
             "Add a Role",
             "View all Employees",
-            "View all Employees by Manager",
-            "View all Employees by Role",
+            "View Employees by Manager",
+            "View Employees by Role",
             "Add an Employee",
             "Done",
           ],
@@ -39,28 +39,32 @@ const promptDbOptions = () => {
             viewDeprts();
             break;
 
-          case "View Roles":
-            viewRoles();
-            break;
-
-          case "View All Employees":
-            viewEmployees();
-            break;
-
-          case "View Employees By Manager":
-            viewEmployeesByM();
-            break;
-
-          case "View Employees":
-            viewEmployees();
-            break;
-
           case "Add a Department":
             addDepartment();
             break;
 
+          case "View Roles":
+            viewRoles();
+            break;
+
           case "Add a Role":
             addRole();
+            break;
+
+          case "View all Employees":
+            viewEmployees();
+            break;
+
+          case "View Employees by Manager":
+            viewEmployeesByManager();
+            break;
+
+          case "View Employees by Role":
+            viewEmployeesByRole();
+            break;
+
+          case "Add a Employee":
+            addEmployee();
             break;
 
           case "Done":
@@ -225,10 +229,60 @@ const viewEmployees = () => {
   con.query(query, (err, res) => {
     if (err) throw err;
     // show the employees
+    console.table(res);
     displyResult("Employees", res);
     endConnection();
   });
 };
+
+const viewEmployeesByManager = () => {
+  //query for managers
+  const query = `
+    SELECT DISTINCT concat(manager.first_name, " ", manager.last_name) AS full_name
+    FROM employees
+    LEFT JOIN employees AS manager ON manager.id = employees.manager_id
+    WHERE manager.id IS NOT NULL;`;
+  con.query(query, (err, res) => {
+    if (err) throw err;
+    //create manager array
+    const managers = [];
+    for (let i = 0; i < res.length; i++) {
+      managers.push(res[i].full_name);
+    }
+    //prompt for manager selection
+    return inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "managerChoice",
+        message: "Select a Manager:",
+        choices: managers,
+      }
+    ])
+    .then((answer) => {
+      const query = `
+  SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name AS departments_name, concat(manager.first_name, " ", manager.last_name) AS manager_full_name 
+  FROM employees 
+  INNER JOIN roles ON employees.role_id = roles.id
+  INNER JOIN employees AS manager ON employees.manager_id = manager.id
+  INNER JOIN departments ON departments.id = roles.dept_id
+  WHERE manager.id IS NOT NULL AND concat(manager.first_name, " ", manager.last_name) = "${answer.managerChoice}";`;
+  connection.query(query, (err, res) => {
+    if (err) throw err;
+      console.table(answer.managerChoice);
+    });
+  });
+  }
+  )
+}
+
+// const viewEmployeesByRole = () => {};
+// return inquirer
+//     .prompt([
+//       {
+
+// const addEmployee = () => {};
+
 // .then(function ({ first_name, last_name, manager }) {
 //   con.query("INSERT INTO employee (first_name, last_name, manager)
 //        VALUES ?", ('first_name', 'last_name', 'manager'),
@@ -239,11 +293,6 @@ const viewEmployees = () => {
 displyResult = (heading, data) => {
   console.clear();
   console.table(heading, data);
-};
-
-displyChoice = (data) => {
-  console.clear();
-  console.table(data);
 };
 
 promptDbOptions();

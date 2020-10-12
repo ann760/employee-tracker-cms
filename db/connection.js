@@ -1,6 +1,6 @@
 const mysql = require("mysql2");
 const index = require("../index")
-const Queries = require("./Queries")
+//const Queries = require("./Queries")
 
 
 // create the connection to database
