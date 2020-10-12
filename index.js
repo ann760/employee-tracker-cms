@@ -4,6 +4,11 @@ const express = require("express");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
 const con = require("./db/connection");
+
+const logo = require('asciiart-logo');
+const config = require('./package.json');
+console.log(logo(config).render())
+
 const deptID = [];
 
 // select a managament option on the db

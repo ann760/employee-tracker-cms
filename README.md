@@ -33,6 +33,7 @@ SO THAT I can organize and plan my business
 - inquerer
 - mysql 2
 - console.table
+- asciiart-logo
 
 ## Installation
 To run this program you will need to install the npm node js, inquirer, console.table, and mysql2
