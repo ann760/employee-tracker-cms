@@ -38,9 +38,9 @@ SO THAT I can organize and plan my business
 ## Installation
 To run this program you will need to install the npm node js, inquirer, console.table, and mysql2
 
-![img](.dist/employees.jpg)
 
-# link to site
+# link to rapository site
+https://github.com/ann760/employee-tracker-cms
 
 ## Author
 * [Ann-Marie Orozco](ann760.github.io/myportfolio/) - 
