@@ -1,7 +1,5 @@
 const mysql = require("mysql2");
 const index = require("../index")
-//const Queries = require("./Queries")
-
 
 // create the connection to database
 const con = mysql.createConnection({
@@ -17,7 +15,6 @@ const con = mysql.createConnection({
 con.connect((err) => {
     if (err) throw err;
     console.log("connected as id " + con.threadId + "\n");
-    //index.promptDbOptions()
   });
 
 

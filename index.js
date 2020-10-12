@@ -4,8 +4,6 @@ const express = require("express");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
 const con = require("./db/connection");
-//const Queries = require("./db/Queries");
-// const { query } = require("./db/connection");
 const deptID = [];
 
 // select a managament option on the db
@@ -261,34 +259,61 @@ const viewEmployeesByManager = () => {
     ])
     .then((answer) => {
       const query = `
-  SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name AS departments_name, concat(manager.first_name, " ", manager.last_name) AS manager_full_name 
+  SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name, concat(manager.first_name, " ", manager.last_name) AS manager_name 
   FROM employees 
   INNER JOIN roles ON employees.role_id = roles.id
   INNER JOIN employees AS manager ON employees.manager_id = manager.id
   INNER JOIN departments ON departments.id = roles.dept_id
   WHERE manager.id IS NOT NULL AND concat(manager.first_name, " ", manager.last_name) = "${answer.managerChoice}";`;
-  connection.query(query, (err, res) => {
-    if (err) throw err;
+  con.query(query, (err, res) => {
+      if (err) throw err;
       console.table(answer.managerChoice);
+      // show the employees
+      console.table(res);
+      displyResult("Employees by Manager", res);
+      endConnection();
+    }); 
     });
   });
-  }
-  )
-}
+  };
 
-// const viewEmployeesByRole = () => {};
-// return inquirer
-//     .prompt([
-//       {
-
-// const addEmployee = () => {};
-
-// .then(function ({ first_name, last_name, manager }) {
-//   con.query("INSERT INTO employee (first_name, last_name, manager)
-//        VALUES ?", ('first_name', 'last_name', 'manager'),
-//        function (err, result) {
-//       if (err) throw err;
-// })
+const viewEmployeesByRole = () => {
+  const query = `SELECT * from roles`;
+  con.query(query, (err, res) => {
+    if (err) throw err;
+    //create role array
+    const roles = [];
+    for (let i = 0; i < res.length; i++) {
+      roles.push(res[i].title);
+    }
+return inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "roleChoice",
+        message: "Select a Role:",
+        choices: roles,
+      }
+    ])
+    .then((answer) => {
+      const query = `
+  SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name, concat(manager.first_name, " ", manager.last_name) AS manager_name 
+  FROM roles 
+  RIGHT JOIN employees ON employees.role_id = roles.id
+  RIGHT JOIN employees AS manager ON employees.manager_id = manager.id
+  RIGHT JOIN departments ON departments.id = roles.dept_id
+  WHERE roles.title = "${answer.roleChoice}";`;
+  con.query(query, (err, res) => {
+    if (err) throw err;
+    console.table(answer.roleChoice);
+    // show the employees by role
+    console.table(res);
+    displyResult("Employees by Role", res);
+    endConnection();
+  }); 
+  });
+});
+};
 
 displyResult = (heading, data) => {
   console.clear();
