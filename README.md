@@ -36,8 +36,8 @@ SO THAT I can organize and plan my business
 - asciiart-logo
 
 ## Installation
-To run this program you will need to install the npm node js, inquirer, console.table, and mysql2
-
+To run this program you will need to install the npm node js, inquirer, console.table, asciiart-logo and mysql2
+You will need to create a database using the provided schema.
 
 # link to rapository site
 https://github.com/ann760/employee-tracker-cms

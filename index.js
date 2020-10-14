@@ -5,15 +5,18 @@ const inquirer = require("inquirer");
 const cTable = require("console.table");
 const con = require("./db/connection");
 
-const logo = require('asciiart-logo');
-const config = require('./package.json');
-console.log(logo(config).render())
+const logo = require("asciiart-logo");
+const config = require("./package.json");
+console.log(logo(config).render());
 
 const deptID = [];
+const managers = [];
+const roles = [];
+const roleId = [];
+const managerId = [];
 
 // select a managament option on the db
 const promptDbOptions = () => {
-  // let dbAction = {
   return (
     inquirer
       .prompt([
@@ -66,7 +69,7 @@ const promptDbOptions = () => {
             viewEmployeesByRole();
             break;
 
-          case "Add a Employee":
+          case "Add an Employee":
             addEmployee();
             break;
 
@@ -238,6 +241,7 @@ const viewEmployees = () => {
   });
 };
 
+// VIEW employees BY MANAGER
 const viewEmployeesByManager = () => {
   //query for managers
   const query = `
@@ -248,41 +252,42 @@ const viewEmployeesByManager = () => {
   con.query(query, (err, res) => {
     if (err) throw err;
     //create manager array
-    const managers = [];
     for (let i = 0; i < res.length; i++) {
       managers.push(res[i].full_name);
     }
     //prompt for manager selection
     return inquirer
-    .prompt([
-      {
-        type: "list",
-        name: "managerChoice",
-        message: "Select a Manager:",
-        choices: managers,
-      }
-    ])
-    .then((answer) => {
-      const query = `
+      .prompt([
+        {
+          type: "list",
+          name: "managerChoice",
+          message: "Select a Manager:",
+          choices: managers,
+        },
+      ])
+      .then((answer) => {
+        const query = `
   SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name, concat(manager.first_name, " ", manager.last_name) AS manager_name 
   FROM employees 
   INNER JOIN roles ON employees.role_id = roles.id
   INNER JOIN employees AS manager ON employees.manager_id = manager.id
   INNER JOIN departments ON departments.id = roles.dept_id
   WHERE manager.id IS NOT NULL AND concat(manager.first_name, " ", manager.last_name) = "${answer.managerChoice}";`;
-  con.query(query, (err, res) => {
-      if (err) throw err;
-      console.table(answer.managerChoice);
-      // show the employees
-      console.table(res);
-      displyResult("Employees by Manager", res);
-      endConnection();
-    }); 
-    });
+        con.query(query, (err, res) => {
+          if (err) throw err;
+          console.table(answer.managerChoice);
+          // show the employees
+          console.table(res);
+          displyResult("Employees by Manager", res);
+          endConnection();
+        });
+      });
   });
-  };
+};
 
+// VIEW employees BY ROLE DEPART
 const viewEmployeesByRole = () => {
+  // qurey for roles
   const query = `SELECT * from roles`;
   con.query(query, (err, res) => {
     if (err) throw err;
@@ -291,33 +296,150 @@ const viewEmployeesByRole = () => {
     for (let i = 0; i < res.length; i++) {
       roles.push(res[i].title);
     }
-return inquirer
-    .prompt([
-      {
-        type: "list",
-        name: "roleChoice",
-        message: "Select a Role:",
-        choices: roles,
-      }
-    ])
-    .then((answer) => {
-      const query = `
+    return inquirer
+      .prompt([
+        {
+          type: "list",
+          name: "roleChoice",
+          message: "Select a Role:",
+          choices: roles,
+        },
+      ])
+      .then((answer) => {
+        const query = `
   SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name, concat(manager.first_name, " ", manager.last_name) AS manager_name 
   FROM roles 
   RIGHT JOIN employees ON employees.role_id = roles.id
   RIGHT JOIN employees AS manager ON employees.manager_id = manager.id
   RIGHT JOIN departments ON departments.id = roles.dept_id
   WHERE roles.title = "${answer.roleChoice}";`;
+        con.query(query, (err, res) => {
+          if (err) throw err;
+          console.table(answer.roleChoice);
+          // show the employees by role
+          console.table(res);
+          displyResult("Employees by Role", res);
+          endConnection();
+        });
+      });
+  });
+};
+
+// ADD AN EMPLOYEE
+const addEmployee = () => {
+  //query for roles
+  const query = `SELECT * from roles`;
   con.query(query, (err, res) => {
     if (err) throw err;
-    console.table(answer.roleChoice);
-    // show the employees by role
-    console.table(res);
-    displyResult("Employees by Role", res);
-    endConnection();
-  }); 
+    // create role array
+    for (let i = 0; i < res.length; i++) {
+      roles.push(res[i].title);
+    }
+    //query for managers
+    const query = `
+      SELECT DISTINCT concat(manager.first_name, " ", manager.last_name) AS full_name
+      FROM employees
+      LEFT JOIN employees AS manager ON manager.id = employees.manager_id
+      WHERE manager.id IS NOT NULL;`;
+    con.query(query, (err, res) => {
+      if (err) throw err;
+      //create manager array
+      for (let i = 0; i < res.length; i++) {
+        managers.push(res[i].full_name);
+      }
+      // prompt uner info
+      return inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "first_name",
+            message: "What is the employee's first name? (Required)",
+            validate: (nameInput) => {
+              if (nameInput) {
+                return true;
+              } else {
+                console.log("Please enter title!");
+                return false;
+              }
+            },
+          },
+          {
+            type: "input",
+            name: "last_name",
+            message: "What is the employee's last name?(Required)",
+            validate: (nameInput) => {
+              if (nameInput) {
+                return true;
+              } else {
+                console.log("Please enter salary!");
+                return false;
+              }
+            },
+          },
+          {
+            type: "list",
+            name: "roleChoice",
+            message: "Select a Role:",
+            choices: roles,
+          },
+          {
+            type: "list",
+            name: "managerChoice",
+            message: "Select a Manager:",
+            choices: managers,
+          },
+        ])
+        .then((answer) => {
+          con.query(
+            "SELECT id FROM roles where ? ",
+            {
+              title: answer.roleChoice,
+            },
+
+            (err, res) => {
+              if (err) {
+                throw err;
+              } else {
+                for (let i = 0; i < res.length; i++) {
+                  roleId.push(res[i].id);
+                }
+                console.log(roleId);
+
+                con.query(
+                  `SELECT DISTINCT concat(manager.first_name, " ", manager.last_name) AS full_name, manager.id
+                    FROM employees
+                    LEFT JOIN employees AS manager ON manager.id = employees.manager_id
+                    WHERE manager.id IS NOT NULL AND concat(manager.first_name, " ", manager.last_name) = "${answer.managerChoice}";`,           
+                  (err, res) => {
+                    if (err) throw err;
+                    //create manager array
+                    for (let i = 0; i < res.length; i++) {
+                      managerId.push(res[i].id);
+                    }
+                    console.log(managerId);
+                    console.log(roleId);
+
+                    con.query(
+                      "INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)",
+                      [
+                        answer.first_name,
+                        answer.last_name,
+                        roleId,
+                        managerId,
+                      ],
+                      (err, res) => {
+                        if (err) throw err;
+                        viewEmployees();
+                      }
+                    );
+                  }
+                );
+              }
+            }
+          );
+        });
+    });
   });
-});
 };
 
 displyResult = (heading, data) => {
